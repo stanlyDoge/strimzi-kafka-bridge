@@ -1,56 +1,25 @@
 {
-    "openapi": "3.0.2",
+    "openapi": "3.0.0",
     "info": {
-        "title": "HTTP Kafka bridge",
+        "title": "HTTP Kafka Bridge",
+        "description": "This is a HTTP Kafka Bridge server",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "email": "strimzi@redhat.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
         "version": "1.0.0"
     },
     "paths": {
-        "/topics/{topicname}": {
-            "post": {
-                "tags": [
-                    "Topics"
-                ],
-                "summary": "Send a record to topic",
-                "description": "Send a record to topic",
-                "operationId": "send",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Records"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Topic not found"
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "name": "topicname",
-                    "in": "path",
-                    "description": "Topic name",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
         "/consumers/{groupid}": {
             "post": {
                 "tags": [
                     "Consumers"
                 ],
                 "summary": "Create a new consumer instance in the consumer group",
-                "description": "Create a new consumer instance in the consumer group",
                 "operationId": "createConsumer",
                 "requestBody": {
                     "content": {
@@ -67,7 +36,7 @@
                         "description": "OK"
                     },
                     "409": {
-                        "description": "Consumer instance with the specified name already exists."
+                        "description": "Consumer instance with the specified name already exists"
                     },
                     "422": {
                         "description": "Invalid consumer configuration. One of the settings specified in the request contained an invalid value"
@@ -91,11 +60,123 @@
                     "Consumers"
                 ],
                 "summary": "Destroy the consumer instance",
-                "description": "Destroy the consumer instance",
                 "operationId": "deleteConsumer",
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "404": {
+                        "description": "Consumer instance not found"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "groupid",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/consumers/{groupid}/instances/{name}/offsets": {
+            "post": {
+                "tags": [
+                    "Consumers"
+                ],
+                "summary": "Commit a list of offsets for the consumer",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/Offsets"
+                },
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "404": {
+                        "description": "Consumer instance not found"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "groupid",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/consumers/{groupid}/instances/{name}/positions/beginning": {
+            "post": {
+                "tags": [
+                    "Consumers"
+                ],
+                "summary": "Seek to the first offset for each of the given partitions",
+                "operationId": "seekToBeginning",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PartitionsForPositions"
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Consumer instance not found"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "groupid",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "name",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
+        "/consumers/{groupid}/instances/{name}/positions/end": {
+            "post": {
+                "tags": [
+                    "Consumers"
+                ],
+                "summary": "Seek to the last offset for each of the given partitions",
+                "operationId": "seekToEnd",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/PartitionsForPositions"
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "404": {
                         "description": "Consumer instance not found"
@@ -127,28 +208,7 @@
                     "Consumers"
                 ],
                 "summary": "Fetch data for the topics or partitions specified using one of the subscribe/assign APIs",
-                "description": "Fetch data for the topics or partitions specified using one of the subscribe/assign APIs",
                 "operationId": "poll",
-                "parameters": [
-                    {
-                        "name": "timeout",
-                        "in": "query",
-                        "description": "Maximum amount of milliseconds the REST proxy will spend fetching records",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "max_bytes",
-                        "in": "query",
-                        "description": "The maximum number of bytes of unencoded keys and values that should be included in the response",
-                        "required": false,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -177,30 +237,65 @@
                     "schema": {
                         "type": "string"
                     }
+                },
+                {
+                    "name": "timeout",
+                    "in": "query",
+                    "description": "Maximum amount of milliseconds the REST proxy will spend fetching records",
+                    "required": false,
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "max_bytes",
+                    "in": "query",
+                    "description": "The maximum number of bytes of unencoded keys and values that should be included in the response",
+                    "required": false,
+                    "schema": {
+                        "type": "integer"
+                    }
                 }
             ]
         },
-        "/consumers/{groupid}/instances/{name}/offsets": {
+        "/consumers/{groupid}/instances/{name}/subscription": {
             "post": {
                 "tags": [
                     "Consumers"
                 ],
-                "summary": "Commit a list of offsets for the consumer",
-                "description": "Commit a list of offsets for the consumer",
-                "operationId": "commit",
+                "summary": "Subscribe to the given list of topics",
+                "operationId": "subscribe",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Offsets"
+                                "$ref": "#/components/schemas/Topics"
                             }
                         }
                     },
                     "required": true
                 },
                 "responses": {
-                    "200": {
-                        "description": "OK"
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Consumer instance not found"
+                    },
+                    "409": {
+                        "description": "Subscription to topics, partitions and pattern are mutually exclusive"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Consumers"
+                ],
+                "summary": "Unsubscribe from topics currently subscribed",
+                "operationId": "unsubscribe",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "404": {
                         "description": "Consumer instance not found"
@@ -226,13 +321,49 @@
                 }
             ]
         },
+        "/topics/{topicname}": {
+            "post": {
+                "tags": [
+                    "Topics"
+                ],
+                "summary": "Send a record to topic",
+                "operationId": "send",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Records"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "404": {
+                        "description": "Topic not found"
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "topicname",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ]
+        },
         "/topics/{topicname}/partitions/{partitionid}": {
             "post": {
                 "tags": [
                     "Topics"
                 ],
                 "summary": "Send a record to specified partition of topic",
-                "description": "Send a record to specified partition of topic",
                 "operationId": "sendToPartition",
                 "requestBody": {
                     "content": {
@@ -270,7 +401,7 @@
                     "in": "path",
                     "required": true,
                     "schema": {
-                        "type": "integer"
+                        "type": "string"
                     }
                 }
             ]
@@ -281,178 +412,12 @@
                     "Consumers"
                 ],
                 "summary": "Overrides the fetch offsets that the consumer will use for the next set of records to fetch",
-                "description": "Overrides the fetch offsets that the consumer will use for the next set of records to fetch",
-                "operationId": "seek",
                 "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Offsets"
-                            }
-                        }
-                    },
-                    "required": true
+                    "$ref": "#/components/requestBodies/Offsets"
                 },
                 "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Consumer instance not found"
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "name": "groupid",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "name",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/consumers/{groupid}/instances/{name}/positions/beginning": {
-            "post": {
-                "tags": [
-                    "Consumers"
-                ],
-                "summary": "Seek to the first offset for each of the given partitions",
-                "description": "Seek to the first offset for each of the given partitions",
-                "operationId": "seekToBeginning",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PartitionsForPositions"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Consumer instance not found"
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "name": "groupid",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "name",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/consumers/{groupid}/instances/{name}/positions/end": {
-            "post": {
-                "tags": [
-                    "Consumers"
-                ],
-                "summary": "Seek to the last offset for each of the given partitions",
-                "description": "Seek to the last offset for each of the given partitions",
-                "operationId": "seekToEnd",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PartitionsForPositions"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Consumer instance not found"
-                    }
-                }
-            },
-            "parameters": [
-                {
-                    "name": "groupid",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "name": "name",
-                    "in": "path",
-                    "required": true,
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ]
-        },
-        "/consumers/{groupid}/instances/{name}/subscription": {
-            "post": {
-                "tags": [
-                    "Consumers"
-                ],
-                "summary": "Subscribe to the given list of topics",
-                "description": "Subscribe to the given list of topics",
-                "operationId": "subscribe",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Topics"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "404": {
-                        "description": "Consumer instance not found"
-                    },
-                    "409": {
-                        "description": "Subscription to topics, partitions and pattern are mutually exclusive"
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Consumers"
-                ],
-                "summary": "Unsubscribe from topics currently subscribed",
-                "description": "Unsubscribe from topics currently subscribed",
-                "operationId": "unsubscribe",
-                "responses": {
-                    "200": {
-                        "description": "OK"
+                    "204": {
+                        "description": "No Content"
                     },
                     "404": {
                         "description": "Consumer instance not found"
@@ -479,8 +444,67 @@
             ]
         }
     },
+    "tags": [
+        {
+            "name": "Consumers",
+            "description": "Consumers management"
+        },
+        {
+            "name": "Topics",
+            "description": "Topics management"
+        }
+    ],
+    "externalDocs": {
+        "description": "Find out more about Swagger",
+        "url": "http://swagger.io"
+    },
+    "servers": [
+        {
+            "url": "https://petstore.swagger.io/v2"
+        },
+        {
+            "url": "http://petstore.swagger.io/v2"
+        }
+    ],
     "components": {
+        "requestBodies": {
+            "Offsets": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Offsets"
+                        }
+                    }
+                },
+                "required": true
+            },
+            "PartitionsForPositions": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/PartitionsForPositions"
+                        }
+                    }
+                },
+                "required": true
+            }
+        },
         "schemas": {
+            "ApiResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
             "Consumer": {
                 "title": "Root Type for Consumer",
                 "description": "The root of the Consumer type's schema.",
@@ -507,17 +531,6 @@
                 },
                 "example": "{\n    \"name\": \"consumer1\",\n    \"format\": \"binary\",\n    \"auto.offset.reset\": \"earliest\",\n    \"auto.commit.enable\": \"false\",\n    \"fetch.min.bytes\": \"512\",\n    \"consumer.request.timeout.ms\": \"30000\"\n}"
             },
-            "Offsets": {
-                "title": "Offsets",
-                "required": [],
-                "type": "object",
-                "properties": {
-                    "offsets": {
-                        "$ref": "#/components/schemas/Offset"
-                    }
-                },
-                "example": "{\n    \"offsets\": [\n        {\n            \"topic\": \"topic\",\n            \"partition\": 0,\n            \"offset\": 15\n        },\n        {\n            \"topic\": \"topic\",\n            \"partition\": 1,\n            \"offset\": 42\n        }\n    ]\n}"
-            },
             "Offset": {
                 "title": "Offset",
                 "required": [],
@@ -534,19 +547,23 @@
                     }
                 }
             },
-            "Topics": {
-                "title": "Root Type for Topics",
-                "description": "The root of the Topics type's schema.",
+            "Partition": {
+                "title": "Partition",
                 "type": "object",
                 "properties": {
-                    "topics": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
+                    "partition": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "leader": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "replicas": {
+                        "type": "object"
                     }
                 },
-                "example": "{\n    \"topics\": [\n        \"topic1\",\n        \"topic2\"\n    ]\n}"
+                "example": "{\n    \"partition\": 1,\n    \"leader\": 1,\n    \"replicas\": [\n        {\n            \"broker\": 1,\n            \"leader\": true,\n            \"in_sync\": true\n        },\n        {\n            \"broker\": 2,\n            \"leader\": false,\n            \"in_sync\": false\n        }\n    ]\n}"
             },
             "Record": {
                 "title": "Record",
@@ -572,71 +589,78 @@
                     }
                 }
             },
-            "Records": {
-                "title": "Root Type for Records",
-                "description": "The root of the Records type's schema.",
-                "type": "object",
-                "properties": {
-                    "records": {
-                        "type": "array",
-                        "items": {
-                            "type": "object"
-                        }
-                    }
-                },
-                "example": "{\n    \"records\": [\n        {\n            \"key\": \"1abcd\",\n            \"value\": \"msg1\"\n        },\n        {\n            \"value\": \"msg2\",\n            \"partition\": 1\n        },\n        {\n            \"value\": \"msg3\"\n        }\n    ]\n}"
-            },
-            "PartitionsForPositions": {
-                "title": "Root Type for PartitionsForPositions",
-                "description": "The root of the PartitionsForPositions type's schema.",
-                "type": "object",
-                "properties": {
-                    "partitions": {
-                        "type": "object"
-                    }
-                },
-                "example": "{\n    \"partitions\": [\n        {\n            \"topic\": \"topic\",\n            \"partition\": 0\n        },\n        {\n            \"topic\": \"topic\",\n            \"partition\": 1\n        }\n    ]\n}"
-            },
-            "Partitions": {
-                "title": "Root Type for Partitions",
-                "description": "The root of the Partitions type's schema.",
-                "type": "object",
-                "properties": {
-                    "partitions": {
-                        "type": "object"
-                    }
-                },
-                "example": "{\n    \"partitions\": [\n        {\n            \"partition\": 1,\n            \"leader\": 1,\n            \"replicas\": [\n                {\n                    \"broker\": 1,\n                    \"leader\": true,\n                    \"in_sync\": true\n                },\n                {\n                    \"broker\": 2,\n                    \"leader\": false,\n                    \"in_sync\": false\n                }\n            ]\n        },\n        {\n            \"partition\": 2,\n            \"leader\": 2,\n            \"replicas\": [\n                {\n                    \"broker\": 1,\n                    \"leader\": false,\n                    \"in_sync\": true\n                },\n                {\n                    \"broker\": 2,\n                    \"leader\": true,\n                    \"in_sync\": false\n                }\n            ]\n        }\n    ]\n}"
-            },
-            "Partition": {
-                "title": "Root Type for Partition",
-                "description": "The root of the Partition type's schema.",
-                "type": "object",
-                "properties": {
-                    "partition": {
-                        "format": "int32",
-                        "type": "integer"
-                    },
-                    "leader": {
-                        "format": "int32",
-                        "type": "integer"
-                    },
-                    "replicas": {
-                        "type": "object"
-                    }
-                },
-                "example": "{\n    \"partition\": 1,\n    \"leader\": 1,\n    \"replicas\": [\n        {\n            \"broker\": 1,\n            \"leader\": true,\n            \"in_sync\": true\n        },\n        {\n            \"broker\": 2,\n            \"leader\": false,\n            \"in_sync\": false\n        }\n    ]\n}"
-            },
             "RecordsWithoutPartitions": {
                 "title": "Root Type for RecordsWithoutPartitions",
                 "description": "The root of the RecordsWithoutPartitions type's schema.",
                 "type": "object",
                 "properties": {
                     "records": {
-                        "$ref": "#/components/schemas/Record"
+                        "$ref": "#/components/schemas/Records"
                     }
                 },
                 "example": "{\n    \"records\": [\n        {\n            \"key\": \"1abcd\",\n            \"value\": \"msg1\"\n        },\n        {\n            \"value\": \"msg2\"\n        }\n    ]\n}"
+            },
+            "Topics": {
+                "title": "Topics",
+                "type": "object",
+                "properties": {
+                    "topics": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "example": "{\n    \"topics\": [\n        \"topic1\",\n        \"topic2\"\n    ]\n}"
+            },
+            "Records": {
+                "title": "Records",
+                "type": "object",
+                "properties": {
+                    "records": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Record"
+                        }
+                    }
+                },
+                "example": "{\n    \"records\": [\n        {\n            \"key\": \"1abcd\",\n            \"value\": \"msg1\"\n        },\n        {\n            \"value\": \"msg2\",\n            \"partition\": 1\n        },\n        {\n            \"value\": \"msg3\"\n        }\n    ]\n}"
+            },
+            "PartitionsForPositions": {
+                "title": "PartitionsForPositions",
+                "type": "object",
+                "properties": {
+                    "partitions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Partition"
+                        }
+                    }
+                },
+                "example": "{\n    \"partitions\": [\n        {\n            \"topic\": \"topic\",\n            \"partition\": 0\n        },\n        {\n            \"topic\": \"topic\",\n            \"partition\": 1\n        }\n    ]\n}"
+            },
+            "Partitions": {
+                "title": "Partitions",
+                "type": "object",
+                "properties": {
+                    "partitions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Partition"
+                        }
+                    }
+                },
+                "example": "{\n    \"partitions\": [\n        {\n            \"partition\": 1,\n            \"leader\": 1,\n            \"replicas\": [\n                {\n                    \"broker\": 1,\n                    \"leader\": true,\n                    \"in_sync\": true\n                },\n                {\n                    \"broker\": 2,\n                    \"leader\": false,\n                    \"in_sync\": false\n                }\n            ]\n        },\n        {\n            \"partition\": 2,\n            \"leader\": 2,\n            \"replicas\": [\n                {\n                    \"broker\": 1,\n                    \"leader\": false,\n                    \"in_sync\": true\n                },\n                {\n                    \"broker\": 2,\n                    \"leader\": true,\n                    \"in_sync\": false\n                }\n            ]\n        }\n    ]\n}"
+            },
+            "Offsets": {
+                "title": "Offsets",
+                "type": "object",
+                "properties": {
+                    "offsets": {
+                        "$ref": "#/components/schemas/Offset"
+                    }
+                },
+                "example": "{\n    \"offsets\": [\n        {\n            \"topic\": \"topic\",\n            \"partition\": 0,\n            \"offset\": 15\n        },\n        {\n            \"topic\": \"topic\",\n            \"partition\": 1,\n            \"offset\": 42\n        }\n    ]\n}"
             }
         }
     }
