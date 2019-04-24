@@ -1392,7 +1392,6 @@ public class HttpBridgeTest extends KafkaClusterTestBase {
                 });
     }
 
-    @Ignore
     @Test
     public void offsetsConsumerDoesNotExist(TestContext context) {
         WebClient client = WebClient.create(vertx);
@@ -1429,5 +1428,6 @@ public class HttpBridgeTest extends KafkaClusterTestBase {
                     context.assertEquals("Consumer instance not found", status);
                     commitAsync.complete();
                 });
+        commitAsync.await();
     }
 }
