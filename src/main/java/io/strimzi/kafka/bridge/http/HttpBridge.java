@@ -235,7 +235,6 @@ public class HttpBridge extends AbstractVerticle {
 
     private void seekToBeginning(RoutingContext routingContext) {
         //TODO
-
     }
 
     private void seekToEnd(RoutingContext routingContext) {
