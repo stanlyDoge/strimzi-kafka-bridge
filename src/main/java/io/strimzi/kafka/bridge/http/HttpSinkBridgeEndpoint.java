@@ -243,7 +243,7 @@ public class HttpSinkBridgeEndpoint<V, K> extends SinkBridgeEndpoint<V, K> {
 
     private void sendConsumerCommitOffsetResponse(HttpServerResponse response, boolean result) {
         if (result) {
-            response.setStatusCode(200);
+            response.setStatusCode(204);
         } else {
             response.setStatusCode(500);
         }
