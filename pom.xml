@@ -107,6 +107,12 @@
 			<artifactId>opentracing-kafka-client</artifactId>
 			<version>${opentracing-kafka-client.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.prometheus.jmx/jmx_prometheus_javaagent -->
+		<dependency>
+			<groupId>io.prometheus.jmx</groupId>
+			<artifactId>jmx_prometheus_javaagent</artifactId>
+			<version>0.12.0</version>
+		</dependency>
 
 		<!-- Testing -->
 		<dependency>

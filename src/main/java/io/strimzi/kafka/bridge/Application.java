@@ -11,6 +11,7 @@ import io.opentracing.util.GlobalTracer;
 import io.strimzi.kafka.bridge.amqp.AmqpBridge;
 import io.strimzi.kafka.bridge.config.BridgeConfig;
 import io.strimzi.kafka.bridge.http.HttpBridge;
+import io.strimzi.kafka.bridge.metrics.BridgeStatus;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.config.ConfigRetrieverOptions;
 import io.vertx.config.ConfigStoreOptions;
@@ -21,7 +22,14 @@ import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,6 +122,15 @@ public class Application {
                 }
             });
         });
+        BridgeStatus bs = new BridgeStatus("bridge");
+        MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ObjectName objectName = null;
+        try {
+            objectName = new ObjectName("io.strimzi.kafka.bridge:name=BridgeStatus");
+            platformMBeanServer.registerMBean(bs, objectName);
+        } catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -157,6 +174,7 @@ public class Application {
 
         if (bridgeConfig.getHttpConfig().isEnabled()) {
             HttpBridge httpBridge = new HttpBridge(bridgeConfig);
+            BridgeStatus.setKafkaAddress(bridgeConfig.getKafkaConfig().getConfig().get("bootstrap.servers").toString());
             
             vertx.deployVerticle(httpBridge, done -> {
                 if (done.succeeded()) {

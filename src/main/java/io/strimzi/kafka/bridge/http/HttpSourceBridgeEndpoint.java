@@ -25,6 +25,7 @@ import io.strimzi.kafka.bridge.http.converter.HttpBinaryMessageConverter;
 import io.strimzi.kafka.bridge.http.converter.HttpJsonMessageConverter;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeError;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeResult;
+import io.strimzi.kafka.bridge.metrics.BridgeStatus;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -110,6 +111,7 @@ public class HttpSourceBridgeEndpoint<K, V> extends SourceBridgeEndpoint<K, V> {
             records = messageConverter.toKafkaRecords(topic, partition, routingContext.getBody());
 
             for (KafkaProducerRecord<K, V> record :records)   {
+                BridgeStatus.increaseMessages();
                 tracer.inject(span.context(), Format.Builtin.TEXT_MAP, new TextMap() {
                     @Override
                     public void put(String key, String value) {
@@ -123,6 +125,7 @@ public class HttpSourceBridgeEndpoint<K, V> extends SourceBridgeEndpoint<K, V> {
                 });
             }
         } catch (Exception e) {
+            BridgeStatus.increaseFailedMessages();
             HttpBridgeError error = new HttpBridgeError(
                     HttpResponseStatus.UNPROCESSABLE_ENTITY.code(),
                     e.getMessage());

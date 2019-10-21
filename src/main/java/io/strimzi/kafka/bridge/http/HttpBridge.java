@@ -16,6 +16,7 @@ import io.strimzi.kafka.bridge.SinkBridgeEndpoint;
 import io.strimzi.kafka.bridge.SourceBridgeEndpoint;
 import io.strimzi.kafka.bridge.config.BridgeConfig;
 import io.strimzi.kafka.bridge.http.model.HttpBridgeError;
+import io.strimzi.kafka.bridge.metrics.BridgeStatus;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.file.FileSystem;
@@ -220,6 +221,7 @@ public class HttpBridge extends AbstractVerticle implements HealthCheckable {
 
             sink.closeHandler(endpoint -> {
                 httpBridgeContext.getHttpSinkEndpoints().remove(endpoint.name());
+                BridgeStatus.decreaseConsumers();
             });        
             sink.open();
 
@@ -227,6 +229,7 @@ public class HttpBridge extends AbstractVerticle implements HealthCheckable {
                 SinkBridgeEndpoint<byte[], byte[]> endpoint = (SinkBridgeEndpoint<byte[], byte[]>) s;
                 httpBridgeContext.getHttpSinkEndpoints().put(endpoint.name(), endpoint);
                 timestampMap.put(endpoint.name(), System.currentTimeMillis());
+                BridgeStatus.increaseConsumers();
             });
         } catch (Exception ex) {
             if (sink != null) {
@@ -256,6 +259,7 @@ public class HttpBridge extends AbstractVerticle implements HealthCheckable {
 
             this.httpBridgeContext.getHttpSinkEndpoints().remove(deleteInstanceID);
             timestampMap.remove(deleteInstanceID);
+            BridgeStatus.decreaseConsumers();
         } else {
             HttpBridgeError error = new HttpBridgeError(
                     HttpResponseStatus.NOT_FOUND.code(),

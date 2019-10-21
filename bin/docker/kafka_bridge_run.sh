@@ -37,6 +37,12 @@ fi
 
 export MALLOC_ARENA_MAX=2
 
+# enabling Prometheus JMX exporter as Java agent
+if [ "$KAFKA_BRIDGE_METRICS_ENABLED" = "true" ]; then
+    export BRIDGE_OPTS="${BRIDGE_OPTS} -javaagent:$(ls $STRIMZI_HOME/libs/jmx_prometheus_javaagent*.jar)=9404:$STRIMZI_HOME/custom-config/metrics-config.yml"
+    export JAVA_OPTS="${JAVA_OPTS} ${BRIDGE_OPTS}"
+fi
+
 # Configure GC logging for memory tracking
 function get_gc_opts {
   if [ "${STRIMZI_GC_LOG_ENABLED}" == "true" ]; then
