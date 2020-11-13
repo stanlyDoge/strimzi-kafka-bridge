@@ -265,7 +265,7 @@ public class ConsumerSubscriptionTest extends HttpBridgeTestAbstract {
     }
 
     @Test
-    void assignTest(VertxTestContext context) throws InterruptedException, ExecutionException, TimeoutException {
+    void assignAfterSubscriptionTest(VertxTestContext context) throws InterruptedException, ExecutionException, TimeoutException {
         String topic = "subscribe-and-assign-topic";
 
         adminClientFacade.createTopic(topic, 4, 1);
