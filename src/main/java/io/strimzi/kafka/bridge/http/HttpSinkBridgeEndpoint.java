@@ -345,6 +345,13 @@ public class HttpSinkBridgeEndpoint<K, V> extends SinkBridgeEndpoint<K, V> {
     }
 
     private void doAssign(RoutingContext routingContext, JsonObject bodyAsJson) {
+        if (subscribed) {
+            HttpBridgeError error = new HttpBridgeError(
+                    HttpResponseStatus.CONFLICT.code(), "Subscriptions to topics, partitions, and patterns are mutually exclusive."
+            );
+            HttpUtils.sendResponse(routingContext, HttpResponseStatus.CONFLICT.code(),
+                    BridgeContentType.KAFKA_JSON, error.toJson().toBuffer());
+        }
         JsonArray partitionsList = bodyAsJson.getJsonArray("partitions");
         this.topicSubscriptions.addAll(
                 partitionsList.stream()
@@ -356,15 +363,6 @@ public class HttpSinkBridgeEndpoint<K, V> extends SinkBridgeEndpoint<K, V> {
         this.setAssignHandler(assignResult -> {
             if (assignResult.succeeded()) {
                 HttpUtils.sendResponse(routingContext, HttpResponseStatus.NO_CONTENT.code(), null, null);
-            } else {
-                if (assignResult.cause() instanceof IllegalStateException) {
-                    HttpBridgeError error = new HttpBridgeError(
-                            HttpResponseStatus.CONFLICT.code(),
-                            assignResult.cause().getMessage()
-                    );
-                    HttpUtils.sendResponse(routingContext, HttpResponseStatus.CONFLICT.code(),
-                            BridgeContentType.KAFKA_JSON, error.toJson().toBuffer());
-                }
             }
         });
 
@@ -373,7 +371,7 @@ public class HttpSinkBridgeEndpoint<K, V> extends SinkBridgeEndpoint<K, V> {
 
     private void doSubscribe(RoutingContext routingContext, JsonObject bodyAsJson) {
         // cannot specify both topics list and topic pattern
-        if (bodyAsJson.containsKey("topics") && bodyAsJson.containsKey("topic_pattern")) {
+        if ((bodyAsJson.containsKey("topics") && bodyAsJson.containsKey("topic_pattern")) || assigned) {
             HttpBridgeError error = new HttpBridgeError(
                     HttpResponseStatus.CONFLICT.code(),
                     "Subscriptions to topics, partitions, and patterns are mutually exclusive."
